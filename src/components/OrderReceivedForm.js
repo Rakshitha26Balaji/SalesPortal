@@ -83,6 +83,7 @@ const OrederReceivedForm = () => {
   const [submittedData, setSubmittedData] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
 
+
   // form here we have started file uploading logic
   const [browsefile, setbrowsefile] = useState(null);
   const [uploadFileData, setuploadFileData] = useState();
@@ -150,7 +151,7 @@ const OrederReceivedForm = () => {
         axios
           .get(response.data.project[0].ServerIP[0].NodeServerIP + API)
           .then((response) => {
-            console.log(" error while getting API : ", response);
+            console.log(" Response while hitting the API : ", response);
             setOrderData(response.data);
           })
           .catch((error) => console.log(error.message));
@@ -210,9 +211,10 @@ const OrederReceivedForm = () => {
       OperatorSBU: "Software SBU",
       submittedAt: new Date().toISOString(),
 
-      fileName: uploadFileData?.fileName,
-      filePath: uploadFileData?.filePath,
-      hardDiskFileName: uploadFileData?.hardDiskFileName,
+      contractCopy: uploadFileData?.map((f) => f.originalName),
+      FileName: uploadFileData?.map((f) => f.savedName),
+      FilePath: uploadFileData?.map((f) => f.filePath),
+      HardDiskFileName: uploadFileData?.map((f) => f.savedName),
 
       Dom_or_Export: "1",
     };
@@ -246,17 +248,19 @@ const OrederReceivedForm = () => {
     // );
 
     const validFiles = files.filter(
-    (file) =>
-      file.type.includes("pdf") ||
-      file.type.includes("image") ||
-      file.type.includes("sheet") ||
-      file.type.includes("word")
-  );
+      (file) =>
+        file.type.includes("pdf") ||
+        file.type.includes("image") ||
+        file.type.includes("sheet") ||
+        file.type.includes("word")
+    );
 
     setSelectedFiles((prev) => [...prev, ...validFiles]);
+    console.log(" how many selected : ", selectedFiles);
   };
 
   const handleFileUpload = async () => {
+    console.log(" how many selected from upload : ", selectedFiles);
     if (selectedFiles.length === 0) {
       alert("Please select files");
       return;
@@ -264,15 +268,17 @@ const OrederReceivedForm = () => {
 
     const formData = new FormData();
     selectedFiles.forEach((file) => formData.append("files", file));
+    
+    console.log("formData send to backend : ", formData)
 
     try {
-      const res = await fetch(ServerIp + "/pdfupload", {
+      const res = await fetch(ServerIp + "/orderFileUpload", {
         method: "POST",
         body: formData,
       });
 
       const data = await res.json();
-      console.log("Uploaded files:", data);
+      console.log("Uploaded files: ", data);
     } catch (err) {
       console.error(err);
       alert("Upload failed");
@@ -903,8 +909,8 @@ const OrederReceivedForm = () => {
                 </Grid>
               </Card>
 
-              {/* Attachments Section */}
-              <Card
+               {/* Attachments Section */}
+               <Card
                 sx={{
                   mt: -1,
                   mb: 3,
@@ -1140,7 +1146,12 @@ const OrederReceivedForm = () => {
 
       {/* ------------------------ VIEW TABLE ------------------------ */}
       {value === 1 && (
-        <ViewOrderRecievedData ViewData={orderData}></ViewOrderRecievedData>
+        <ViewOrderRecievedData
+          ViewData={orderData}
+          setOrderData={setOrderData}
+          ServerIp={ServerIp}
+        />
+        // <h1>Rakshitha </h1>
       )}
 
       {/* ------------------------ BULK UPLOAD ------------------------ */}
@@ -1201,7 +1212,6 @@ function ViewOrderRecievedData(props) {
   const [statusFilter, setStatusFilter] = useState("all");
   // const [yearFilter, setYearFilter] = useState(null);
   const [yearFilter, setYearFilter] = useState(dayjs());
-
 
   const [sortBy, setSortBy] = useState("dateCreated");
   const [sortDirection, setSortDirection] = useState("desc");
@@ -1292,14 +1302,13 @@ function ViewOrderRecievedData(props) {
     setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
 
   const handleResetFilters = () => {
-  setSearchTerm("");
-  setTenderTypeFilter("all");
-  setStatusFilter("all");
-  setSortBy("dateCreated");
-  setSortDirection("desc");
-  setYearFilter(null);
-};
-
+    setSearchTerm("");
+    setTenderTypeFilter("all");
+    setStatusFilter("all");
+    setSortBy("dateCreated");
+    setSortDirection("desc");
+    setYearFilter(null);
+  };
 
   // DOWNLOAD ALL DATA AS EXCEL
   const handleDownloadAllData = () => {
@@ -1365,30 +1374,24 @@ function ViewOrderRecievedData(props) {
   // CONFIRM AND SAVE TO BACKEND
   const handleConfirmSave = async () => {
     try {
-      console.log("Saving updated row:", editingRow);
+      await axios.put(
+        `${props.ServerIp}/getOrderReceived/${editingRow.purchaseOrder}`,
+        editingRow
+      );
 
-      // Mock API call - Replace with real API endpoint
-      const mockApiResponse = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            message: "Record updated successfully",
-            data: editingRow,
-          });
-        }, 800);
-      });
+      alert("Updated successfully");
 
-      if (mockApiResponse.success) {
-        console.log("Backend Response:", mockApiResponse);
-        alert("Changes saved successfully!");
-        setConfirmSaveOpen(false);
-        setEditDialogOpen(false);
-        setIsEditMode(false);
-        setEditingRow(null);
-      }
+      // 🔄 Refresh table from backend
+      const refreshed = await axios.get(`${props.ServerIp}/getOrderReceived`);
+      props.setOrderData(refreshed.data);
+
+      setConfirmSaveOpen(false);
+      setEditDialogOpen(false);
+      setIsEditMode(false);
+      setEditingRow(null);
     } catch (error) {
-      console.error("Error saving changes:", error);
-      alert("Failed to save changes. Please try again.");
+      console.error(error);
+      alert("Update failed");
     }
   };
 
@@ -1399,12 +1402,21 @@ function ViewOrderRecievedData(props) {
   };
 
   // DELETE ROW
-  const handleDeleteClick = (id) => {
-    if (!window.confirm("Are you sure you want to delete this entry?")) return;
+  const handleDeleteClick = async (purchaseOrder) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
 
-    console.log("Deleting row with ID:", id);
+    try {
+      await axios.delete(`${props.ServerIp}/getOrderReceived/${purchaseOrder}`);
 
-    // TODO: delete logic here
+      alert("Deleted successfully");
+
+      // 🔄 Refresh table
+      const refreshed = await axios.get(`${props.ServerIp}/getOrderReceived`);
+      props.setOrderData(refreshed.data);
+    } catch (error) {
+      console.error(error);
+      alert("Delete failed");
+    }
   };
 
   // DOUBLE CLICK → OPEN READ-ONLY VIEW
@@ -1464,56 +1476,33 @@ function ViewOrderRecievedData(props) {
   const filteredSortedData =
     data &&
     data
-      // .filter((row) => {
-      //   const q = searchTerm.toLowerCase();
-      //   const matchesSearch =
-      //     !q ||
-      //     row.projectTitle?.toLowerCase().includes(q) ||
-      //     row.customerName?.toLowerCase().includes(q) ||
-      //     row.orderRxdDate?.toLowerCase().includes(q) ||
-      //     row.PoCoWoNo?.toLowerCase().includes(q) ||
-      //     row.customerAddress?.toLowerCase().includes(q);
+      .filter((row) => {
+        const q = searchTerm.toLowerCase();
 
-      //   const matchesTenderType =
-      //     tenderTypeFilter === "all" ||
-      //     row.tenderType?.toLowerCase() === tenderTypeFilter.toLowerCase();
+        const matchesSearch =
+          !q ||
+          row.projectTitle?.toLowerCase().includes(q) ||
+          row.customerName?.toLowerCase().includes(q) ||
+          row.orderRxdDate?.toLowerCase().includes(q) ||
+          row.PoCoWoNo?.toLowerCase().includes(q) ||
+          row.customerAddress?.toLowerCase().includes(q);
 
-      //   const matchesStatus =
-      //     statusFilter === "all" ||
-      //     row.presentStatus?.toLowerCase() === statusFilter.toLowerCase();
+        const matchesTenderType =
+          tenderTypeFilter === "all" ||
+          row.tenderType?.toLowerCase() === tenderTypeFilter.toLowerCase();
 
-      //   return matchesSearch && matchesTenderType && matchesStatus;
-      // })
-    .filter((row) => {
-      const q = searchTerm.toLowerCase();
+        const matchesStatus =
+          statusFilter === "all" ||
+          row.presentStatus?.toLowerCase() === statusFilter.toLowerCase();
 
-      const matchesSearch =
-        !q ||
-        row.projectTitle?.toLowerCase().includes(q) ||
-        row.customerName?.toLowerCase().includes(q) ||
-        row.orderRxdDate?.toLowerCase().includes(q) ||
-        row.PoCoWoNo?.toLowerCase().includes(q) ||
-        row.customerAddress?.toLowerCase().includes(q);
+        // const matchesYear =
+        //   !yearFilter || dayjs(row.orderRxdDate).year() === yearFilter.year();
 
-      const matchesTenderType =
-        tenderTypeFilter === "all" ||
-        row.tenderType?.toLowerCase() === tenderTypeFilter.toLowerCase();
-
-      const matchesStatus =
-        statusFilter === "all" ||
-        row.presentStatus?.toLowerCase() === statusFilter.toLowerCase();
-
-      const matchesYear =
-        !yearFilter ||
-        dayjs(row.orderRxdDate).year() === yearFilter.year();
-
-      return (
-        matchesSearch &&
-        matchesTenderType &&
-        matchesStatus &&
-        matchesYear
-      );
-    })
+        return (
+          matchesSearch && matchesTenderType && matchesStatus
+          //  && matchesYear
+        );
+      })
 
       .sort((a, b) => {
         let aVal;
@@ -1765,12 +1754,12 @@ function ViewOrderRecievedData(props) {
             </TextField>
 
             {/* YEAR FILTER */}
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 views={["year"]}
                 label="Year"
                 value={yearFilter}
-                minDate={dayjs("2018-01-01")}   // ✅ START FROM 2018
+                minDate={dayjs("2018-01-01")} // ✅ START FROM 2018
                 onChange={(newValue) => setYearFilter(newValue)}
                 slotProps={{
                   textField: {
@@ -1799,7 +1788,7 @@ function ViewOrderRecievedData(props) {
                   },
                 }}
               />
-            </LocalizationProvider>
+            </LocalizationProvider> */}
 
             {/* STATUS FILTER */}
             <TextField
@@ -1948,6 +1937,7 @@ function ViewOrderRecievedData(props) {
         </Box>
       </Box>
 
+      {/* Table */}
       <Box
         sx={{
           width: "100%",
@@ -2124,7 +2114,7 @@ function ViewOrderRecievedData(props) {
                                   size="small"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDeleteClick(row.id);
+                                    handleDeleteClick(row.purchaseOrder);
                                   }}
                                   sx={{
                                     borderRadius: 2,
@@ -3096,6 +3086,8 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [excelData, setExcelData] = useState([]);
+  const [selectedFiles, setSelectedFile] = useState([]);
+  const [uploadFileData, setuploadFileData] = useState();
 
   // defaultValues: {
   //   projectTitle: "",
@@ -3238,6 +3230,7 @@ function ExcelUploadAndValidate({ user, ServerIp }) {
 
     reader.readAsArrayBuffer(file);
   };
+
 
   // ----------------------------
   // SEND TO BACKEND

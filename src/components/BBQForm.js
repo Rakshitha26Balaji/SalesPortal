@@ -1,218 +1,423 @@
 import React, { useState } from "react";
 import {
-  Grid,
-  Card,
-  CardActionArea,
-  CardContent,
-  Typography,
   Box,
+  Card,
   Container,
+  Typography,
+  Grid,
+  TextField,
+  Button,
+  Divider,
+  CircularProgress,
+  Zoom,
+  Chip,
 } from "@mui/material";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import SendRoundedIcon from "@mui/icons-material/SendRounded";
+import { useForm, Controller } from "react-hook-form";
 
-// Icons
-import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-import GroupsIcon from "@mui/icons-material/Groups";
-import PublicIcon from "@mui/icons-material/Public";
-import HubIcon from "@mui/icons-material/Hub";
-import FactCheckIcon from "@mui/icons-material/FactCheck";
-import ReportProblemIcon from "@mui/icons-material/ReportProblem";
-import EngineeringIcon from "@mui/icons-material/Engineering";
+export default function TrialBeautifulForm() {
+  const [loading, setLoading] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
-// Forms
-import BudgetaryQuotationForm from "../components/BudgetaryQuotationForm";
-import LeadSubmittedForm from "../components/LeadSubmittedForm";
-import DomesticLeadForm from "../components/DomesticLeadsForm";
-import ExportLeadForm from "../components/ExportLeadsForm";
-import CRMLeadForm from "../components/CRMForm";
-import ReceivedDomesticOrder from "../components/OrderReceivedForm";
-import LostForm from "../components/LostForm";
-import FutureRDInitiative from "../components/FutureRDInitiative";
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      fullName: "",
+      email: "",
+      phone: "",
+      company: "",
+      location: "",
+      notes: "",
+    },
+  });
 
-// Gradients
-const gradients = [
-  // Executive Navy (primary / hero)
-  "linear-gradient(160deg, #03045e 0%, #023e8a 55%, #002855 100%)",
+  const onSubmit = async (data) => {
+    setLoading(true);
 
-  // Corporate Blue
-  "linear-gradient(155deg, #023e8a 0%, #00509d 60%, #003f88 100%)",
+    // ✅ Dummy API delay to simulate backend call
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  // Calm professional (no cyan)
-  "linear-gradient(150deg, #002855 0%, #023e8a 100%)",
+    console.log("Submitted Data:", data);
 
-  // Authority / strong action
-  "linear-gradient(165deg, #03045e 0%, #001845 100%)",
-
-  // Balanced mid-tone
-  "linear-gradient(150deg, #023e8a 0%, #003566 100%)",
-
-  // Subtle variation (still dark)
-  "linear-gradient(155deg, #001d3d 0%, #003f88 100%)",
-
-  // Deep elegant contrast
-  "linear-gradient(160deg, #03045e 0%, #00296b 100%)",
-
-  // Deep elegant contrast
-  "linear-gradient(160deg, #03045e 0%, #00296b 100%)",
-];
-
-// Cards
-const menuItems = [
-  { title: "Budgetary Quotation", icon: <RequestQuoteIcon />, value: 0 },
-  { title: "Lead Submitted", icon: <AssignmentTurnedInIcon />, value: 1 },
-  { title: "Domestic Leads", icon: <GroupsIcon />, value: 2 },
-  { title: "Export Leads", icon: <PublicIcon />, value: 3 },
-  { title: "CRM Leads", icon: <HubIcon />, value: 4 },
-  { title: "Order Received", icon: <FactCheckIcon />, value: 5 },
-  { title: "Lost Form", icon: <ReportProblemIcon />, value: 6 },
-  { title: "Future R&D Initiative", icon: <EngineeringIcon />, value: 7 },
-];
-
-export default function CrmPage() {
-  const [value, setValue] = useState(null);
+    setLoading(false);
+    setSubmitSuccess(true);
+    reset();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        py: 6,
-        background: "linear-gradient(135deg, #E3F2FD 0%, #F9FCFF 100%)",
+        background:
+          "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.18), transparent 40%), radial-gradient(circle at 80% 30%, rgba(34,197,94,0.14), transparent 45%), linear-gradient(135deg, #EAF6FD 0%, #CFE9F7 40%, #B6DFF5 100%)",
+        py: 5,
       }}
     >
-      {value === null && (
-        <>
+      <Container maxWidth="md">
+        {/* Header */}
+        <Box sx={{ textAlign: "center", mb: 3 }}>
+          <Chip
+            label="Trial Create Data Section"
+            sx={{
+              px: 2,
+              py: 2,
+              fontWeight: 800,
+              fontSize: 13,
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.75)",
+              border: "1px solid rgba(37,99,235,0.15)",
+              backdropFilter: "blur(12px)",
+            }}
+          />
           <Typography
             variant="h3"
-            fontWeight={900}
-            mb={10}
-            textAlign="center"
             sx={{
-              letterSpacing: "0.6px", // subtle authority
-              background: "linear-gradient(90deg, #08192b, #102a44)",
+              mt: 2,
+              fontWeight: 950,
+              letterSpacing: 0.2,
+              background: "linear-gradient(90deg,#0ea5e9,#2563eb,#16a34a)",
               WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              position: "relative",
-
-              // subtle underline accent (formal, not flashy)
-              "&::after": {
-                content: '""',
-                display: "block",
-                width: "90px",
-                height: "4px",
-                margin: "14px auto 0",
-                borderRadius: "2px",
-                background: "linear-gradient(90deg, #08192b, #1f4b7a)",
-                opacity: 0.85,
-              },
+              color: "transparent",
             }}
           >
-            Marketing Data Forms
+            Beautiful Form UI (Demo)
           </Typography>
 
-          {/* ✅ WIDTH-CONSTRAINED CONTAINER */}
-          <Container maxWidth="lg">
-            <Grid
-              container
-              justifyContent="center"
-              columnSpacing={4}
-              rowSpacing={3}
-            >
-              {menuItems.map((item, index) => (
-                <Grid
-                  item
-                  xs={12}
-                  sm={6}
-                  md={3} // ✅ Forces 4 per row
-                  key={item.title}
-                  sx={{ display: "flex", justifyContent: "center" }}
+          <Typography
+            sx={{
+              mt: 1,
+              color: "rgba(15,23,42,0.7)",
+              fontWeight: 600,
+            }}
+          >
+            After submit, the form disappears and a success screen appears.
+          </Typography>
+        </Box>
+
+        {/* Success Screen */}
+        {submitSuccess ? (
+          <Zoom in={submitSuccess}>
+            <Box sx={{ mt: 4 }}>
+              <Card
+                sx={{
+                  borderRadius: 6,
+                  p: { xs: 3, md: 5 },
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.92), rgba(235,248,255,0.92))",
+                  backdropFilter: "blur(14px)",
+                  boxShadow: "0 20px 60px rgba(15,23,42,0.18)",
+                  border: "1px solid rgba(59,130,246,0.18)",
+                  textAlign: "center",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 95,
+                    height: 95,
+                    mx: "auto",
+                    mb: 2,
+                    borderRadius: "50%",
+                    display: "grid",
+                    placeItems: "center",
+                    background:
+                      "linear-gradient(135deg, rgba(34,197,94,0.18), rgba(59,130,246,0.14))",
+                  }}
                 >
-                  <Card
+                  <CheckCircleRoundedIcon sx={{ fontSize: 62, color: "#16a34a" }} />
+                </Box>
+
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 950,
+                    letterSpacing: 0.2,
+                    background: "linear-gradient(90deg,#16a34a,#2563eb)",
+                    WebkitBackgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
+                  Form Submitted Successfully!
+                </Typography>
+
+                <Typography
+                  sx={{
+                    mt: 1,
+                    fontSize: 15.5,
+                    color: "rgba(15,23,42,0.75)",
+                    fontWeight: 600,
+                  }}
+                >
+                  Your details have been recorded. You can submit another form now.
+                </Typography>
+
+                <Divider sx={{ my: 3 }} />
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 2,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Button
+                    size="large"
+                    variant="contained"
+                    startIcon={<RestartAltRoundedIcon />}
+                    onClick={() => setSubmitSuccess(false)}
                     sx={{
-                      width: 260,
-                      height: 230,
-                      borderRadius: 4,
-                      background: gradients[index],
-                      color: "#fff",
-                      boxShadow: "0 16px 40px rgba(0,0,0,0.15)",
-                      transition: "0.35s",
+                      px: 5,
+                      py: 1.4,
+                      borderRadius: 999,
+                      fontWeight: 900,
+                      textTransform: "none",
+                      background: "linear-gradient(90deg,#2563eb,#38bdf8)",
+                      boxShadow: "0 12px 30px rgba(37,99,235,0.35)",
                       "&:hover": {
-                        transform: "translateY(-8px)",
-                        boxShadow: "0 26px 60px rgba(0,0,0,0.25)",
+                        background: "linear-gradient(90deg,#1d4ed8,#0ea5e9)",
                       },
                     }}
                   >
-                    <CardActionArea
-                      sx={{ height: "100%" }}
-                      onClick={() => setValue(item.value)}
-                    >
-                      <CardContent
-                        sx={{
-                          height: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          textAlign: "center",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            mb: 2.5,
-                            width: 70,
-                            height: 70,
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: "rgba(255,255,255,0.25)",
-                          }}
-                        >
-                          {React.cloneElement(item.icon, {
-                            sx: { fontSize: 38, color: "#fff" },
-                          })}
-                        </Box>
+                    Submit Another Form
+                  </Button>
 
-                        <Typography variant="h6" fontWeight={800}>
-                          {item.title}
-                        </Typography>
-
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                          Open module
-                        </Typography>
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </>
-      )}
-
-      {value !== null && (
-        <Box px={{ xs: 2, sm: 4 }}>
-          <Typography
+                  <Button
+                    size="large"
+                    variant="outlined"
+                    sx={{
+                      px: 5,
+                      py: 1.4,
+                      borderRadius: 999,
+                      fontWeight: 900,
+                      textTransform: "none",
+                    }}
+                    onClick={() => alert("Dummy: Navigate to View Data Tab")}
+                  >
+                    View Data
+                  </Button>
+                </Box>
+              </Card>
+            </Box>
+          </Zoom>
+        ) : (
+          // Form
+          <Card
             sx={{
-              mb: 3,
-              cursor: "pointer",
-              fontWeight: 600,
-              color: "#1976D2",
+              borderRadius: 6,
+              p: { xs: 3, md: 4 },
+              background: "rgba(255,255,255,0.82)",
+              backdropFilter: "blur(16px)",
+              boxShadow: "0 25px 70px rgba(2,132,199,0.18)",
+              border: "1px solid rgba(2,132,199,0.14)",
+              position: "relative",
+              overflow: "hidden",
             }}
-            onClick={() => setValue(null)}
           >
-            ← Back to Cards
-          </Typography>
+            {/* Glow effect */}
+            <Box
+              sx={{
+                position: "absolute",
+                top: -120,
+                right: -120,
+                width: 260,
+                height: 260,
+                borderRadius: "50%",
+                background: "rgba(56,189,248,0.25)",
+                filter: "blur(40px)",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: -120,
+                left: -120,
+                width: 280,
+                height: 280,
+                borderRadius: "50%",
+                background: "rgba(34,197,94,0.16)",
+                filter: "blur(45px)",
+              }}
+            />
 
-          {value === 0 && <BudgetaryQuotationForm />}
-          {value === 1 && <LeadSubmittedForm />}
-          {value === 2 && <DomesticLeadForm />}
-          {value === 3 && <ExportLeadForm />}
-          {value === 4 && <CRMLeadForm />}
-          {value === 5 && <ReceivedDomesticOrder />}
-          {value === 6 && <LostForm />}
-          {value === 7 && <FutureRDInitiative />}
-        </Box>
-      )}
+            <Box sx={{ position: "relative" }}>
+              <Typography variant="h5" sx={{ fontWeight: 950 }}>
+                Create Data
+              </Typography>
+              <Typography
+                sx={{
+                  mt: 0.6,
+                  color: "rgba(15,23,42,0.72)",
+                  fontWeight: 600,
+                  fontSize: 14,
+                }}
+              >
+                Dummy form (frontend-only). Submit to see success UI.
+              </Typography>
+
+              <Divider sx={{ my: 2.5 }} />
+
+              <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+                <Grid container spacing={2.3}>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="fullName"
+                      control={control}
+                      rules={{ required: "Full Name is required" }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Full Name"
+                          error={!!errors.fullName}
+                          helperText={errors.fullName?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="email"
+                      control={control}
+                      rules={{
+                        required: "Email is required",
+                        pattern: {
+                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                          message: "Enter valid email",
+                        },
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Email"
+                          error={!!errors.email}
+                          helperText={errors.email?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="phone"
+                      control={control}
+                      rules={{
+                        required: "Phone is required",
+                        minLength: { value: 10, message: "Minimum 10 digits" },
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Phone"
+                          error={!!errors.phone}
+                          helperText={errors.phone?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="company"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField {...field} fullWidth label="Company" />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Controller
+                      name="location"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField {...field} fullWidth label="Location" />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Controller
+                      name="notes"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          multiline
+                          minRows={3}
+                          label="Notes"
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+
+                {/* Buttons */}
+                <Box
+                  sx={{
+                    mt: 3,
+                    display: "flex",
+                    gap: 2,
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Button
+                    type="submit"
+                    size="large"
+                    variant="contained"
+                    disabled={loading}
+                    startIcon={
+                      loading ? <CircularProgress size={20} color="inherit" /> : <SendRoundedIcon />
+                    }
+                    sx={{
+                      px: 6,
+                      py: 1.4,
+                      borderRadius: 999,
+                      fontWeight: 900,
+                      textTransform: "none",
+                      background: "linear-gradient(90deg,#2563eb,#38bdf8)",
+                      boxShadow: "0 12px 30px rgba(37,99,235,0.35)",
+                      "&:hover": {
+                        background: "linear-gradient(90deg,#1d4ed8,#0ea5e9)",
+                      },
+                    }}
+                  >
+                    {loading ? "Submitting..." : "Submit Form"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="large"
+                    variant="outlined"
+                    disabled={loading}
+                    onClick={() => reset()}
+                    sx={{
+                      px: 6,
+                      py: 1.4,
+                      borderRadius: 999,
+                      fontWeight: 900,
+                      textTransform: "none",
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </Card>
+        )}
+      </Container>
     </Box>
   );
 }
